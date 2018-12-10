@@ -35,7 +35,10 @@
         "domainJoinOptions": 3,
         "StandardAppsURL": "https://raw.githubusercontent.com/lnesdevops/w16build/master/standardtools.ps1",
         "StandardAppsScriptFolder": ".",
-        "StandardAppsScriptFileName": "standardtools.ps1"
+        "StandardAppsScriptFileName": "standardtools.ps1",
+        "officeVersion": "Office2016",
+        "_artifactsLocation": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/windows-vm-O365/scripts/",
+        "setupOfficeScriptFileName":"DeployO365SilentWithVersion.ps1"
     },
     "resources": [
         {
@@ -88,29 +91,36 @@
             },
             "resources": [
                 {
-                    "name": "InstallStandardApps",
-                    "type": "extensions",
-                    "location": "[resourceGroup().location]",
-                    "apiVersion": "2017-12-01",
+                    "name": "[concat(parameters('virtualMachineName'), '/SetupOffice')]",
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                    "location": "[variables('location')]",
+                    "apiVersion": "2015-06-15",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Compute/virtualMachines', variables('dnsLabelPrefix'))]"
+                      "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
                     ],
                     "tags": {
-                        "displayName": "Install Standard Applications"
-                    },
-                    "properties": {
-                        "publisher": "Microsoft.Compute",
-                        "type": "CustomScriptExtension",
-                        "typeHandlerVersion": "1.4",
-                        "autoUpgradeMinorVersion": true,
-                        "settings": {
-                            "fileUris": [
-                                "[variables('StandardAppsURL')]"
-                            ],
-                            "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('StandardAppsScriptFolder'), '/', variables('StandardAppsScriptFileName'))]"
-                        }
-                    }
-                }
+                      "displayName": "SetupOffice"
+                      },
+                      "properties": {
+                      "publisher": "Microsoft.Compute",
+                      "type": "CustomScriptExtension",
+                      "typeHandlerVersion": "1.9",
+                      "autoUpgradeMinorVersion": true,
+                      "settings": {
+                        "fileUris": [
+                          "[concat(variables('_artifactsLocation'), variables('setupOfficeScriptFileName'))]",
+                          "https://raw.githubusercontent.com/officedev/Office-IT-Pro-Deployment-Scripts/master/Office-ProPlus-Deployment/Deploy-OfficeClickToRun/DefaultConfiguration.xml",
+                          "https://raw.githubusercontent.com/officedev/Office-IT-Pro-Deployment-Scripts/master/Office-ProPlus-Deployment/Deploy-OfficeClickToRun/Office2013Setup.exe",
+                          "https://raw.githubusercontent.com/officedev/Office-IT-Pro-Deployment-Scripts/master/Office-ProPlus-Deployment/Deploy-OfficeClickToRun/Office2016Setup.exe",
+                          "https://raw.githubusercontent.com/officedev/Office-IT-Pro-Deployment-Scripts/master/Office-ProPlus-Deployment/Deploy-OfficeClickToRun/Edit-OfficeConfigurationFile.ps1",
+                          "https://raw.githubusercontent.com/officedev/Office-IT-Pro-Deployment-Scripts/master/Office-ProPlus-Deployment/Deploy-OfficeClickToRun/Generate-ODTConfigurationXML.ps1",
+                          "https://raw.githubusercontent.com/officedev/Office-IT-Pro-Deployment-Scripts/master/Office-ProPlus-Deployment/Deploy-OfficeClickToRun/Install-OfficeClickToRun.ps1"
+                        ],
+                        "commandToExecute": "[concat('powershell -ExecutionPolicy bypass -File ', variables('setupOfficeScriptFileName'),' -OfficeVersion ', variables('officeVersion'))]"
+                      }
+                  
+                  }
+              }
             ]
         },
         {
